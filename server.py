@@ -1,10 +1,17 @@
 import os
 from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS  # Add this import
 from datetime import datetime
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-CORS(app)  # ✅ Add this line
+
+# Enable CORS for all routes and origins
+CORS(app)
+
+# Or for more security, specify allowed origins:
+# CORS(app, origins=["http://localhost:3000", "https://yourdomain.com"])
+
 UPLOAD_FOLDER = 'recordings'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -16,15 +23,15 @@ def index():
 def upload_audio(name):
     if not request.data:
         return "No audio data received", 400
-
+    
     safe_name = secure_filename(name)
     timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
     filename = f"{safe_name}_{timestamp}.mp3"
     filepath = os.path.join(UPLOAD_FOLDER, filename)
-
+    
     with open(filepath, 'wb') as f:
         f.write(request.data)
-
+    
     return f"Saved as {filename}", 200
 
 @app.route('/audio/<filename>', methods=['GET'])
