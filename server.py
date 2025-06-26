@@ -4,6 +4,7 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+CORS(app)  # ✅ Add this line
 UPLOAD_FOLDER = 'recordings'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
