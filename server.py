@@ -1,16 +1,17 @@
-import os 
+import os
 from flask import Flask, request, jsonify, send_from_directory
-from flask_cors import CORS  # Add this import
 from datetime import datetime
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
-# Enable CORS for all routes and origins
-CORS(app)
-
-# Or for more security, specify allowed origins:
-# CORS(app, origins=["http://localhost:3000", "https://yourdomain.com"])
+# Manual CORS headers - no extra package needed
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
 
 UPLOAD_FOLDER = 'recordings'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -41,8 +42,13 @@ def stream_file(filename):
 @app.route('/list', methods=['GET'])
 def list_all_files():
     """List all files in recordings folder"""
-    files = sorted(os.listdir(UPLOAD_FOLDER))
-    return jsonify(files)
+    try:
+        files = sorted(os.listdir(UPLOAD_FOLDER))
+        print(f"[DEBUG] Found {len(files)} files: {files}")
+        return jsonify(files)
+    except Exception as e:
+        print(f"[ERROR] Error listing files: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/list/<name>', methods=['GET'])
 def list_files_by_name(name):
